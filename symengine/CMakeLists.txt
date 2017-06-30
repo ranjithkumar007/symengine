@@ -143,6 +143,7 @@ set(HEADERS
     real_double.h
     real_mpfr.h
     rings.h
+    simplify.h
     series_flint.h
     series_generic.h
     series.h
