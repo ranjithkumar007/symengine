@@ -325,6 +325,14 @@ bool is_a_linear_trigFunction(const RCP<const Basic> &f,
     return false;
 }
 
+RCP<const Set> solve_trig(const RCP<const Basic> &f,
+                          const RCP<const Symbol> &sym,
+                          const RCP<const Set> &domain)
+{
+    // first simplify f using `fu`.
+    return domain;
+}
+
 RCP<const Set> solve(const RCP<const Basic> &f, const RCP<const Symbol> &sym,
                      const RCP<const Set> &domain)
 {
@@ -366,8 +374,7 @@ RCP<const Set> solve(const RCP<const Basic> &f, const RCP<const Symbol> &sym,
         return emptyset();
 
     if (is_a_linear_trigFunction(newf, sym)) {
-        // TODO
-        return emptyset();
+        return solve_trig(newf, sym, domain);
     }
 
     return solve_rational(newf, sym, domain);

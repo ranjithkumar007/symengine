@@ -12,11 +12,7 @@ namespace SymEngine
 RCP<const Basic> bottom_up(const RCP<const Basic> &rv,
                            const std::function<RCP<const Basic>> &f)
 {
-    if (is_a<Sign>(*rv) or is_a<Erf>(*rv) or is_a<Erfc>(*rv) or is_a<Gamma>(*rv)
-        or is_a<LogGamma>(*rv) or is_a<Sin>(*rv) or is_a<Cos>(*rv)
-        or is_a<Tan>(*rv) or is_a<Cot>(*rv) or is_a<Sec>(*rv) or is_a<Csc>(*rv)
-        or is_a<Sinh>(*rv) or is_a<Cosh>(*rv) or is_a<Tanh>(*rv)
-        or is_a<Coth>(*rv) or is_a<Sech>(*rv) or is_a<Csch>(*rv)) {
+    if (is_a_OneArgFunction(*rv)) {
         const OneArgFunction &dfunc = down_cast<const OneArgFunction &>(*rv);
         auto farg = dfunc.get_arg();
         auto newarg = bottom_up(farg, f);
