@@ -2,7 +2,6 @@
 #include <symengine/polys/basic_conversions.h>
 #include <symengine/logic.h>
 #include <symengine/mul.h>
-#include <symengine/subs.h>
 namespace SymEngine
 {
 
@@ -326,46 +325,74 @@ bool is_a_linear_trigFunction(const RCP<const Basic> &f,
     return false;
 }
 
-std::pair<RCP<const Basic>, RCP<const Set>> invertComplex_helper(const RCP<const Basic> &fX, const RCP<const Set> &gY, const RCP<const Symbol> &sym)
+std::pair<RCP<const Basic>, RCP<const Set>>
+invertComplex_helper(const RCP<const Basic> &fX, const RCP<const Set> &gY,
+                     const RCP<const Symbol> &sym)
 {
     if (eq(*fX, *sym))
         return std::make_pair(fX, gY);
 
-    auto nD = dummy("n");
+    RCP<const Symbol> nD = dummy("n");
 
     if (is_a<Add>(*fX)) {
-        RCP<const Basic> f1X, f2X;
-        down_cast<const Add&>(*fX).as_two_terms(outArg(f1X), outArg(f2X));
-        if (not eq(*f1X, *zero)) {
-            return invertComplex_helper(f2X, imageset(nD, sub(nD, f1X), gY), sym);
+        vec_basic f1X, f2X;
+        for (auto &elem : down_cast<const Add &>(*fX).get_args()) {
+            if (has_symbol(*elem, *sym)) {
+                f1X.push_back(elem);
+            } else {
+                f2X.push_back(elem);
+            }
+        }
+        auto depX = add(f1X), indepX = add(f2X);
+        if (not eq(*indepX, *zero)) {
+            return invertComplex_helper(depX, imageset(nD, sub(nD, indepX), gY),
+                                        sym);
         }
     }
 
     if (is_a<Mul>(*fX)) {
-        RCP<const Basic> f1X, f2X;
-        down_cast<const Mul&>(*fX).as_two_terms(outArg(f1X), outArg(f2X));
-        if (not eq(*f1X, *one)) {
-            if (eq(*f1X, *NegInf) or eq(*f1X, *Inf) or eq(*f1X, *ComplexInf))
-                return std::make_pair(f2X, emptyset());
-            return invertComplex_helper(f2X, imageset(nD, div(nD, f1X), gY), sym);
+        vec_basic f1X, f2X;
+        for (auto &elem : down_cast<const Mul &>(*fX).get_args()) {
+            if (has_symbol(*elem, *sym)) {
+                f1X.push_back(elem);
+            } else {
+                f2X.push_back(elem);
+            }
+        }
+        auto depX = mul(f1X), indepX = mul(f2X);
+        if (not eq(*indepX, *one)) {
+            if (eq(*indepX, *NegInf) or eq(*indepX, *Inf)
+                or eq(*indepX, *ComplexInf))
+                return std::make_pair(depX, emptyset());
+            return invertComplex_helper(depX, imageset(nD, div(nD, indepX), gY),
+                                        sym);
         }
     }
 
-    if (is_a<Pow>(*fX) and eq(*down_cast<const Pow&>(*fX).get_base(), *E) and is_a<FiniteSet>(*gY)) {
+    if (is_a<Pow>(*fX) and eq(*down_cast<const Pow &>(*fX).get_base(), *E)
+        and is_a<FiniteSet>(*gY)) {
         set_set inv;
-        for (const auto &elem : down_cast<const FiniteSet&>(*gY).get_container()) {
-        	if (eq(*elem, *zero))
-        		continue;
-        	inv.insert(imageset(nD, add(mul({integer(2), nD, pi, I}), log(elem)), interval(NegInf, Inf, true, true))); // replace this with Set of Integers
+        for (const auto &elem :
+             down_cast<const FiniteSet &>(*gY).get_container()) {
+            if (eq(*elem, *zero))
+                continue;
+            inv.insert(
+                imageset(nD, add(mul({integer(2), nD, pi, I}), log(elem)),
+                         interval(NegInf, Inf, true,
+                                  true))); // replace this with Set of Integers
         }
-     	return invertComplex_helper(down_cast<const Pow&>(*fX).get_exp(), set_union(inv), sym);
+        return invertComplex_helper(down_cast<const Pow &>(*fX).get_exp(),
+                                    set_union(inv), sym);
     }
-   	return std::make_pair(fX, gY);
+    return std::make_pair(fX, gY);
 }
 
-RCP<const Set> invertComplex(const RCP<const Basic> &fX, const RCP<const Set> &gY, const RCP<const Symbol> &sym, const RCP<const Set> &domain = universalset())
+RCP<const Set> invertComplex(const RCP<const Basic> &fX,
+                             const RCP<const Set> &gY,
+                             const RCP<const Symbol> &sym,
+                             const RCP<const Set> &domain = universalset())
 {
-	return set_intersection({invertComplex_helper(fX,gY,sym).second, domain});
+    return set_intersection({invertComplex_helper(fX, gY, sym).second, domain});
 }
 
 RCP<const Set> solve_trig(const RCP<const Basic> &f,
@@ -381,25 +408,26 @@ RCP<const Set> solve_trig(const RCP<const Basic> &f,
     map_basic_basic d;
     auto temp = exp(mul(I, sym));
     d[temp] = xD;
-    num = expand(num)->subs(d);
-    den = expand(den)->subs(d);
+    num = expand(num), den = expand(den);
+    num = num->subs(d);
+    den = den->subs(d);
 
     if (has_symbol(*num, *sym) or has_symbol(*den, *sym)) {
-        return conditionset(sym, logical_and({Eq(expanded_f,zero)}));
+        return conditionset(sym, logical_and({Eq(expanded_f, zero)}));
     }
 
-    auto soln = set_complement(solve(num, sym), solve(den, sym));
-
+    auto soln = set_complement(solve(num, xD), solve(den, xD));
     if (eq(*soln, *emptyset()))
         return emptyset();
     else if (is_a<FiniteSet>(*soln)) {
         set_set res;
-        for (const auto &elem : down_cast<const FiniteSet &>(*soln).get_container()) {
-        	res.insert(invertComplex(exp(mul(I, sym)), finiteset({elem}), sym));
+        for (const auto &elem :
+             down_cast<const FiniteSet &>(*soln).get_container()) {
+            res.insert(invertComplex(exp(mul(I, sym)), finiteset({elem}), sym));
         }
         return set_intersection({set_union(res), domain});
     }
-    return conditionset(sym, logical_and({Eq(f,zero)}));
+    return conditionset(sym, logical_and({Eq(f, zero)}));
 }
 
 RCP<const Set> solve(const RCP<const Basic> &f, const RCP<const Symbol> &sym,

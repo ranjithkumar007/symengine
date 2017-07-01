@@ -78,6 +78,11 @@ public:
     }
 };
 
+inline bool is_a_Symbol(const Basic &b)
+{
+    return b.get_type_code() == SYMBOL || b.get_type_code() == DUMMY;
+}
+
 //! inline version to return `Symbol`
 inline RCP<const Symbol> symbol(const std::string &name)
 {

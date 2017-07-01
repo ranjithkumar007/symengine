@@ -9,6 +9,7 @@
 #include <symengine/complex.h>
 #include <symengine/symengine_casts.h>
 #include <iterator>
+
 namespace SymEngine
 {
 class Set;
@@ -374,7 +375,7 @@ inline RCP<const Set> imageset(const RCP<const Basic> &sym,
                                const RCP<const Basic> &expr,
                                const RCP<const Set> &base)
 {
-    if (not is_a<Symbol>(*sym))
+    if (not is_a_Symbol(*sym))
         throw SymEngineException("first arg is expected to be a symbol");
 
     if (eq(*expr, *sym) or eq(*base, *emptyset()))
@@ -390,6 +391,14 @@ inline RCP<const Set> imageset(const RCP<const Basic> &sym,
             }
         }
         return finiteset({expr});
+    }
+
+    if (is_a<ImageSet>(*base)) {
+        const ImageSet &imbase = down_cast<const ImageSet &>(*base);
+        map_basic_basic d;
+        d[sym] = imbase.get_expr();
+        return imageset(imbase.get_symbol(), expand(expr->subs(d)),
+                        imbase.get_baseset());
     }
 
     return make_rcp<const ImageSet>(sym, expr, base);

@@ -766,7 +766,10 @@ bool ImageSet::__eq__(const Basic &o) const
 {
     if (is_a<ImageSet>(o)) {
         const ImageSet &other = down_cast<const ImageSet &>(o);
-        return unified_eq(sym_, other.sym_) and unified_eq(expr_, other.expr_)
+        map_basic_basic d;
+        d[sym_]
+            = other.sym_; // ImageSet(x,x**2,base) == ImageSet(y, y**2, base)
+        return unified_eq(expr_->subs(d), other.expr_)
                and unified_eq(base_, other.base_);
     }
     return false;
