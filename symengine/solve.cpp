@@ -58,10 +58,11 @@ RCP<const Set> solve_poly_cubic(const vec_basic &coeffs,
     // https://en.wikipedia.org/wiki/Cubic_function#General_solution_to_the_cubic_equation_with_real_coefficients
     auto i2 = integer(2), i3 = integer(3), i4 = integer(4), i9 = integer(9),
          i27 = integer(27);
+
     RCP<const Basic> root1, root2, root3;
     if (eq(*d, *zero)) {
         root1 = zero;
-        auto fset = solve_poly_quadratic({c, b, one}, domain);
+        auto fset = solve_poly_quadratic({c, b, one}, sym, domain);
         SYMENGINE_ASSERT(is_a<FiniteSet>(*fset));
         auto cont = down_cast<const FiniteSet &>(*fset).get_container();
         if (cont.size() == 2) {
@@ -92,7 +93,6 @@ RCP<const Set> solve_poly_cubic(const vec_basic &coeffs,
             }
             auto C = pow(Cexpr, div(one, i3));
             root1 = neg(div(add(b, add(C, div(delta0, C))), i3));
-
             auto coef = div(mul(I, sqrt(i3)), i2);
             temp = neg(div(one, i2));
             auto cbrt1 = add(temp, coef);
@@ -103,7 +103,6 @@ RCP<const Set> solve_poly_cubic(const vec_basic &coeffs,
                 add(b, add(mul(cbrt2, C), div(delta0, mul(cbrt2, C)))), i3));
         }
     }
-
     return set_intersection({domain, finiteset({root1, root2, root3})});
 }
 
@@ -376,10 +375,12 @@ invertComplex_helper(const RCP<const Basic> &fX, const RCP<const Set> &gY,
              down_cast<const FiniteSet &>(*gY).get_container()) {
             if (eq(*elem, *zero))
                 continue;
-            inv.insert(
-                imageset(nD, add(mul({integer(2), nD, pi, I}), log(elem)),
-                         interval(NegInf, Inf, true,
-                                  true))); // replace this with Set of Integers
+            inv.insert(imageset(nD,
+                                add(mul({integer(2), nD, pi, I}), log(elem)),
+                                interval(NegInf, Inf, true,
+                                         true))); // replace this with Set of
+                                                  // Integers after Class for
+                                                  // Range is implemented.
         }
         return invertComplex_helper(down_cast<const Pow &>(*fX).get_exp(),
                                     set_union(inv), sym);

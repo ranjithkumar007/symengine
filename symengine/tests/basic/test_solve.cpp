@@ -376,7 +376,7 @@ TEST_CASE("solve_poly", "[Solve]")
 #endif
 }
 
-TEST_CASE("solve_trig", "[Solve]")
+TEST_CASE("trigonometric equations", "[Solve]")
 {
     auto x = symbol("x");
     auto n = dummy("n");
@@ -385,10 +385,52 @@ TEST_CASE("solve_trig", "[Solve]")
     auto i2 = integer(2);
 
     eqn = sin(x);
-    soln = solve_trig(eqn, x);
-    auto temp = set_union(
+    soln = solve(eqn, x);
+    auto req = set_union(
         {imageset(n, add(mul({i2, n, pi}), pi),
                   interval(NegInf, Inf, true, true)),
          imageset(n, mul({i2, n, pi}), interval(NegInf, Inf, true, true))});
-    REQUIRE(eq(*soln, *temp));
+    REQUIRE(eq(*soln, *req));
+
+    eqn = cos(x);
+    soln = solve(eqn, x);
+
+    req = set_union({imageset(n, add(mul({i2, n, pi}), div(pi, i2)),
+                              interval(NegInf, Inf, true, true)),
+                     imageset(n, sub(mul({i2, n, pi}), div(pi, i2)),
+                              interval(NegInf, Inf, true, true))});
+    REQUIRE(eq(*soln, *req));
+
+    eqn = tan(x);
+    soln = solve(eqn, x);
+    req = set_union(
+        {imageset(n, add(mul({i2, n, pi}), pi),
+                  interval(NegInf, Inf, true, true)),
+         imageset(n, mul({i2, n, pi}), interval(NegInf, Inf, true, true))});
+    REQUIRE(eq(*soln, *req));
+
+    eqn = csc(x);
+    soln = solve(eqn, x);
+    REQUIRE(eq(*soln, *emptyset()));
+
+    eqn = sec(x);
+    soln = solve(eqn, x);
+    REQUIRE(eq(*soln, *emptyset()));
+
+    eqn = cot(x);
+    soln = solve(eqn, x);
+    req = set_union({imageset(n, add(mul({i2, n, pi}), div(pi, i2)),
+                              interval(NegInf, Inf, true, true)),
+                     imageset(n, sub(mul({i2, n, pi}), div(pi, i2)),
+                              interval(NegInf, Inf, true, true))});
+    REQUIRE(eq(*soln, *req));
+
+    eqn = Eq(sin(x), one);
+    soln = solve(eqn, x);
+    req = imageset(n, add(mul({i2, n, pi}), div(pi, i2)),
+                   interval(NegInf, Inf, true, true));
+    REQUIRE(eq(*soln, *req));
+
+    eqn = add(sin(x), cos(x));
+    soln = solve(eqn, x); // can't evaluate arg and abs of log(sqrt(-I)).
 }
