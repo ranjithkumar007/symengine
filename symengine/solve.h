@@ -50,6 +50,9 @@ RCP<const Set> solve_poly_quartic(const vec_basic &coeffs,
                                   const RCP<const Set> &domain
                                   = universalset());
 
+bool is_a_linear_trigFunction(const RCP<const Basic> &f,
+                              const RCP<const Symbol> &sym);
+
 } // namespace SymEngine
 
 #endif // SYMENGINE_SOLVE_H

@@ -11,7 +11,7 @@ private:
 
 public:
     RealImagVisitor(const Ptr<RCP<const Basic>> &real,
-                      const Ptr<RCP<const Basic>> &imag)
+                    const Ptr<RCP<const Basic>> &imag)
         : real_{real}, imag_{imag}
     {
     }
@@ -39,7 +39,7 @@ public:
                 rest = mul(rest, arg);
             }
         }
-        
+
         if (eq(*rest, *one)) {
             if (is_imag) {
                 *real_ = zero;
@@ -56,18 +56,18 @@ public:
             } else {
                 *real_ = mul(coef, re_);
                 *imag_ = mul(coef, im_);
-            } 
+            }
         }
     }
 
     void bvisit(const Add &x)
     {
-        RCP<const Basic> re = zero,re_,im = zero,im_;
+        RCP<const Basic> re = zero, re_, im = zero, im_;
 
         for (const auto &arg : x.get_args()) {
             as_real_imag(arg, outArg(re_), outArg(im_));
             re = add(re, re_);
-            re = add(im, im_);
+            im = add(im, im_);
         }
 
         *real_ = re;
@@ -119,9 +119,8 @@ public:
     }
 };
 
-void as_real_imag(const RCP<const Basic> &x,
-                    const Ptr<RCP<const Basic>> &real,
-                    const Ptr<RCP<const Basic>> &imag)
+void as_real_imag(const RCP<const Basic> &x, const Ptr<RCP<const Basic>> &real,
+                  const Ptr<RCP<const Basic>> &imag)
 {
     RealImagVisitor v(real, imag);
     v.apply(*x);

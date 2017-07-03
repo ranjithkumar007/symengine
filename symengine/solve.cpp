@@ -2,6 +2,8 @@
 #include <symengine/polys/basic_conversions.h>
 #include <symengine/logic.h>
 #include <symengine/mul.h>
+#include <symengine/real_imag.cpp>
+
 namespace SymEngine
 {
 
@@ -62,7 +64,7 @@ RCP<const Set> solve_poly_cubic(const vec_basic &coeffs,
     RCP<const Basic> root1, root2, root3;
     if (eq(*d, *zero)) {
         root1 = zero;
-        auto fset = solve_poly_quadratic({c, b, one}, sym, domain);
+        auto fset = solve_poly_quadratic({c, b, one}, domain);
         SYMENGINE_ASSERT(is_a<FiniteSet>(*fset));
         auto cont = down_cast<const FiniteSet &>(*fset).get_container();
         if (cont.size() == 2) {
@@ -319,7 +321,10 @@ bool is_a_linear_trigFunction(const RCP<const Basic> &f,
         or is_a<Sec>(*f) or is_a<Csc>(*f) or is_a<Sinh>(*f) or is_a<Cosh>(*f)
         or is_a<Tanh>(*f) or is_a<Coth>(*f) or is_a<Sech>(*f)
         or is_a<Csch>(*f)) {
-        return (from_basic<UExprPoly>(f, sym)->get_poly().size() <= 1);
+        return (from_basic<UExprPoly>(
+                    down_cast<const OneArgFunction &>(*f).get_arg(), sym)
+                    ->get_degree()
+                <= 1);
     }
     return false;
 }
@@ -375,12 +380,17 @@ invertComplex_helper(const RCP<const Basic> &fX, const RCP<const Set> &gY,
              down_cast<const FiniteSet &>(*gY).get_container()) {
             if (eq(*elem, *zero))
                 continue;
-            inv.insert(imageset(nD,
-                                add(mul({integer(2), nD, pi, I}), log(elem)),
-                                interval(NegInf, Inf, true,
-                                         true))); // replace this with Set of
-                                                  // Integers after Class for
-                                                  // Range is implemented.
+            RCP<const Basic> re, im;
+            as_real_imag(elem, outArg(re), outArg(im));
+            auto logabs = log(add(mul(re, re), mul(im, im)));
+            auto logarg = atan2(im, re);
+            inv.insert(
+                imageset(nD, add(mul(add(mul({integer(2), nD, pi}), logarg), I),
+                                 div(logabs, integer(2))),
+                         interval(NegInf, Inf, true,
+                                  true))); // replace this with Set of
+                                           // Integers after Class for
+                                           // Range is implemented.
         }
         return invertComplex_helper(down_cast<const Pow &>(*fX).get_exp(),
                                     set_union(inv), sym);
@@ -428,7 +438,7 @@ RCP<const Set> solve_trig(const RCP<const Basic> &f,
         }
         return set_intersection({set_union(res), domain});
     }
-    return conditionset(sym, logical_and({Eq(f, zero)}));
+    return conditionset(sym, logical_and({Eq(f, zero), domain->contains(sym)}));
 }
 
 RCP<const Set> solve(const RCP<const Basic> &f, const RCP<const Symbol> &sym,

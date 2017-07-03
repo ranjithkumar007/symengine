@@ -16,16 +16,15 @@ using SymEngine::integer;
 
 TEST_CASE("RealImag: Pow", "[as_real_imag]")
 {
-	auto sq = sqrt(I);
+    auto sq = sqrt(neg(I));
     RCP<const Basic> re, im;
     auto i2 = integer(2);
 
-	as_real_imag(sq, outArg(re), outArg(im));
-	REQUIRE(eq(*re, *div(sqrt(i2), i2)));
-	REQUIRE(eq(*im, *neg(div(sqrt(i2), i2))));
+    as_real_imag(sqrt(neg(I)), outArg(re), outArg(im));
+    REQUIRE(eq(*re, *div(sqrt(i2), i2)));
+    REQUIRE(eq(*im, *neg(div(sqrt(i2), i2))));
 
-	// as_real_imag(exp(mul(I, x)), outArg(re), outArg(im));
-	// REQUIRE(eq(*re, *div(sqrt(i2), i2)));
-	// REQUIRE(eq(*im, *neg(div(sqrt(i2), i2))));
-
+    as_real_imag(neg(sqrt(neg(I))), outArg(re), outArg(im));
+    REQUIRE(eq(*re, *neg(div(sqrt(i2), i2))));
+    REQUIRE(eq(*im, *div(sqrt(i2), i2)));
 }

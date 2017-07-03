@@ -376,6 +376,20 @@ TEST_CASE("solve_poly", "[Solve]")
 #endif
 }
 
+TEST_CASE("is_a_linear_trigFunction", "[Solve]")
+{
+    auto x = symbol("x");
+    RCP<const Basic> r;
+
+    REQUIRE(is_a_linear_trigFunction(tan(x), x));
+    REQUIRE(is_a_linear_trigFunction(sub(tan(x), one), x));
+    REQUIRE(is_a_linear_trigFunction(add(sin(x), tan(x)), x));
+    REQUIRE(not is_a_linear_trigFunction(add(tan(x), x), x));
+    REQUIRE(not is_a_linear_trigFunction(mul(x, tan(x)), x));
+    REQUIRE(is_a_linear_trigFunction(mul(tan(x), tan(x)), x));
+    REQUIRE(not is_a_linear_trigFunction(tan(mul(x, x)), x));
+}
+
 TEST_CASE("trigonometric equations", "[Solve]")
 {
     auto x = symbol("x");
@@ -394,10 +408,9 @@ TEST_CASE("trigonometric equations", "[Solve]")
 
     eqn = cos(x);
     soln = solve(eqn, x);
-
-    req = set_union({imageset(n, add(mul({i2, n, pi}), div(pi, i2)),
+    req = set_union({imageset(n, sub(mul({i2, n, pi}), div(pi, i2)),
                               interval(NegInf, Inf, true, true)),
-                     imageset(n, sub(mul({i2, n, pi}), div(pi, i2)),
+                     imageset(n, add(mul({i2, n, pi}), div(pi, i2)),
                               interval(NegInf, Inf, true, true))});
     REQUIRE(eq(*soln, *req));
 
@@ -432,5 +445,43 @@ TEST_CASE("trigonometric equations", "[Solve]")
     REQUIRE(eq(*soln, *req));
 
     eqn = add(sin(x), cos(x));
-    soln = solve(eqn, x); // can't evaluate arg and abs of log(sqrt(-I)).
+    soln = solve(eqn, x); // atan2(-sqrt(2)/2, sqrt(2)/2) is wrongly computed.
+
+    eqn = Eq(add(sin(x), cos(x)), one);
+    soln = solve(eqn, x);
+    req = set_union(
+        {imageset(n, mul({i2, n, pi}), interval(NegInf, Inf, true, true)),
+         imageset(n, add(mul({i2, n, pi}), div(pi, i2)),
+                  interval(NegInf, Inf, true, true))});
+    REQUIRE(eq(*soln, *req));
+
+    eqn = add(mul(sin(x), sin(x)), mul(cos(x), cos(x)));
+    soln = solve(eqn, x);
+    REQUIRE(eq(*soln, *emptyset()));
+
+    eqn = sub(cos(x), div(one, i2));
+    soln = solve(eqn, x);
+    req = set_union({imageset(n, add(mul({i2, n, pi}), div(pi, integer(3))),
+                              interval(NegInf, Inf, true, true)),
+                     imageset(n, sub(mul({i2, n, pi}), div(pi, integer(3))),
+                              interval(NegInf, Inf, true, true))});
+    REQUIRE(eq(*soln, *req));
+
+    auto y = symbol("y");
+    eqn = sub(sin(add(x, y)), sin(x));
+    soln = solve(eqn, y);
+    // REQUIRE(); // expand(exp(x + I*y)) stays as `exp(x + I*y)`.
+    // It should be `exp(x)*exp(I*y)`.
+
+    eqn = mul(sin(x), cos(x));
+    soln = solve(eqn, x);
+    req = set_union(
+        {imageset(n, sub(mul({i2, n, pi}), div(pi, i2)),
+                  interval(NegInf, Inf, true, true)),
+         imageset(n, add(mul({i2, n, pi}), div(pi, i2)),
+                  interval(NegInf, Inf, true, true)),
+         imageset(n, add(mul({i2, n, pi}), pi),
+                  interval(NegInf, Inf, true, true)),
+         imageset(n, mul({i2, n, pi}), interval(NegInf, Inf, true, true))});
+    // REQUIRE(eq(*soln, *req)); // diff ordering of sets in soln and req.
 }
