@@ -53,6 +53,7 @@ set(SRC
     finitediff.cpp
     nan.cpp
     solve.cpp
+    simplify.cpp
 )
 
 if ("${SYMENGINE_INTEGER_CLASS}" STREQUAL "BOOSTMP")

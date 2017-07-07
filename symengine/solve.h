@@ -13,6 +13,7 @@
 #include <symengine/polys/uexprpoly.h>
 #include <symengine/polys/uintpoly.h>
 #include <symengine/polys/uratpoly.h>
+#include <symengine/simplify.h>
 
 namespace SymEngine
 {

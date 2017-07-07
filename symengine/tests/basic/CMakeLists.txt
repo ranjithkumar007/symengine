@@ -92,6 +92,10 @@ add_executable(test_as_real_imag test_as_real_imag.cpp)
 target_link_libraries(test_as_real_imag symengine catch)
 add_test(test_as_real_imag ${PROJECT_BINARY_DIR}/test_as_real_imag)
 
+add_executable(test_simplify test_simplify.cpp)
+target_link_libraries(test_simplify symengine catch)
+add_test(test_simplify ${PROJECT_BINARY_DIR}/test_simplify)
+
 if ("${INTEGER_CLASS}" MATCHES "boostmp")
 	add_executable(test_integer_class test_integer_class.cpp)
 	target_link_libraries(test_integer_class symengine catch)

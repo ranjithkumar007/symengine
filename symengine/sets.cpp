@@ -779,16 +779,14 @@ int ImageSet::compare(const Basic &o) const
 {
     SYMENGINE_ASSERT(is_a<ImageSet>(o))
     const ImageSet &other = down_cast<const ImageSet &>(o);
-    int c1 = unified_compare(sym_, other.sym_);
+    map_basic_basic d;
+    d[sym_] = other.sym_;
+    auto newexpr = expr_->subs(d);
+    int c1 = unified_compare(newexpr, other.expr_);
     if (c1 != 0) {
         return c1;
     } else {
-        int c2 = unified_compare(expr_, other.expr_);
-        if (c2 != 0) {
-            return c2;
-        } else {
-            return unified_compare(base_, other.base_);
-        }
+        return unified_compare(base_, other.base_);
     }
 }
 

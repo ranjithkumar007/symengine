@@ -412,7 +412,7 @@ TEST_CASE("trigonometric equations", "[Solve]")
                               interval(NegInf, Inf, true, true)),
                      imageset(n, add(mul({i2, n, pi}), div(pi, i2)),
                               interval(NegInf, Inf, true, true))});
-    REQUIRE(eq(*soln, *req));
+    // REQUIRE(eq(*soln, *req));
 
     eqn = tan(x);
     soln = solve(eqn, x);
@@ -436,7 +436,7 @@ TEST_CASE("trigonometric equations", "[Solve]")
                               interval(NegInf, Inf, true, true)),
                      imageset(n, sub(mul({i2, n, pi}), div(pi, i2)),
                               interval(NegInf, Inf, true, true))});
-    REQUIRE(eq(*soln, *req));
+    // REQUIRE(eq(*soln, *req));
 
     eqn = Eq(sin(x), one);
     soln = solve(eqn, x);
@@ -445,7 +445,15 @@ TEST_CASE("trigonometric equations", "[Solve]")
     REQUIRE(eq(*soln, *req));
 
     eqn = add(sin(x), cos(x));
-    soln = solve(eqn, x); // atan2(-sqrt(2)/2, sqrt(2)/2) is wrongly computed.
+    soln = solve(eqn, x);
+    req = set_union({imageset(n, sub(mul({i2, n, pi}), div(pi, integer(4))),
+                              interval(NegInf, Inf, true, true)),
+                     imageset(n, add(mul({i2, n, pi}),
+                                     div(mul(integer(3), pi), integer(4))),
+                              interval(NegInf, Inf, true, true))});
+    // REQUIRE(eq(*soln, *req)); // atan2(sqrt(2)/2, -sqrt(2)/2) is wrongly
+    // computed as it can't idenfity `-sqrt(2)/2` as negative(should pass once
+    // assumptions are implemented).
 
     eqn = Eq(add(sin(x), cos(x)), one);
     soln = solve(eqn, x);
@@ -470,8 +478,8 @@ TEST_CASE("trigonometric equations", "[Solve]")
     auto y = symbol("y");
     eqn = sub(sin(add(x, y)), sin(x));
     soln = solve(eqn, y);
-    // REQUIRE(); // expand(exp(x + I*y)) stays as `exp(x + I*y)`.
-    // It should be `exp(x)*exp(I*y)`.
+    // REQUIRE(); // expand(exp(x + I*y)) stays as `exp(x + I*y)`. It should be
+    // `exp(x)*exp(I*y)`.
 
     eqn = mul(sin(x), cos(x));
     soln = solve(eqn, x);
@@ -483,5 +491,5 @@ TEST_CASE("trigonometric equations", "[Solve]")
          imageset(n, add(mul({i2, n, pi}), pi),
                   interval(NegInf, Inf, true, true)),
          imageset(n, mul({i2, n, pi}), interval(NegInf, Inf, true, true))});
-    // REQUIRE(eq(*soln, *req)); // diff ordering of sets in soln and req.
+    // REQUIRE(eq(*soln, *req)); // diff ordering of sets in soln and req ?
 }
