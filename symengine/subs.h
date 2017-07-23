@@ -99,6 +99,19 @@ public:
     {
         RCP<const Basic> base_new = apply(x.get_base());
         RCP<const Basic> exp_new = apply(x.get_exp());
+        if (subs_dict_.size() == 1
+            and is_a<Pow>(*((*subs_dict_.begin()).first))) {
+            auto &subs_first
+                = down_cast<const Pow &>(*(*subs_dict_.begin()).first);
+            if (eq(*subs_first.get_base(), *base_new)) {
+                auto newexpo = div(exp_new, subs_first.get_exp());
+                if (is_a_Number(*newexpo) or is_a<Constant>(*newexpo)) {
+                    result_ = pow((*subs_dict_.begin()).second, newexpo);
+                    return;
+                }
+            }
+        }
+
         if (base_new == x.get_base() and exp_new == x.get_exp())
             result_ = x.rcp_from_this();
         else
