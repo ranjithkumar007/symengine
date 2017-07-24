@@ -45,6 +45,7 @@ using SymEngine::UIntPoly;
 using SymEngine::URatPoly;
 using SymEngine::rational_class;
 using SymEngine::solve_poly_quartic;
+using SymEngine::set_union;
 #ifdef HAVE_SYMENGINE_FLINT
 using SymEngine::UIntPolyFlint;
 using SymEngine::URatPolyFlint;
@@ -124,10 +125,7 @@ TEST_CASE("linear and quadratic polynomials", "[Solve]")
                {add(div(mul(sqrt(integer(69)), sqrt(integer(5))), integer(10)),
                     div(im3, i2)),
                 sub(div(im3, i2), div(mul(sqrt(integer(69)), sqrt(integer(5))),
-                                      integer(10)))}))); // Shouldn't
-                                                         // sqrt(69)*sqrt(5)
-                                                         // simplify into
-                                                         // sqrt(345) ?
+                                      integer(10)))})));
 
     poly = add(sqx, mul(x, i2));
     soln = solve(poly, x);
@@ -188,9 +186,8 @@ TEST_CASE("cubic and quartic polynomials", "[Solve]")
 
     poly = Ne(add({cbx, mul(x, i3), mul(sqx, i3)}), neg(one));
     soln = solve(poly, x, reals);
-    REQUIRE(eq(*soln, *SymEngine::set_union(
-                          {interval(NegInf, integer(-1), true, true),
-                           interval(integer(-1), Inf, true, true)})));
+    REQUIRE(eq(*soln, *set_union({interval(NegInf, integer(-1), true, true),
+                                  interval(integer(-1), Inf, true, true)})));
 
     poly = Ge(add({cbx, mul(x, i3), mul(sqx, i3)}), one);
     soln = solve(poly, x, reals);
@@ -374,4 +371,17 @@ TEST_CASE("solve_poly", "[Solve]")
     soln = solve_poly(P4, x);
     REQUIRE(eq(*soln, *finiteset({neg(one), neg(integer(2))})));
 #endif
+}
+
+TEST_CASE("is_a_LinearArgTrigEquation", "[Solve]")
+{
+    auto x = symbol("x");
+
+    REQUIRE(is_a_LinearArgTrigEquation(*tan(x), *x));
+    REQUIRE(is_a_LinearArgTrigEquation(*sub(tan(x), one), *x));
+    REQUIRE(is_a_LinearArgTrigEquation(*add(sin(x), tan(x)), *x));
+    REQUIRE(not is_a_LinearArgTrigEquation(*add(tan(x), x), *x));
+    REQUIRE(not is_a_LinearArgTrigEquation(*mul(x, tan(x)), *x));
+    REQUIRE(is_a_LinearArgTrigEquation(*mul(tan(x), tan(x)), *x));
+    REQUIRE(not is_a_LinearArgTrigEquation(*tan(mul(x, x)), *x));
 }

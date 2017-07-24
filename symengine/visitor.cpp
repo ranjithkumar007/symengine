@@ -1,4 +1,5 @@
 #include <symengine/visitor.h>
+#include <symengine/polys/basic_conversions.h>
 
 #define ACCEPT(CLASS)                                                          \
     void CLASS::accept(Visitor &v) const                                       \
@@ -175,4 +176,56 @@ void TransformVisitor::bvisit(const MultiArgFunction &x)
     auto nbarg = x.create(newargs);
     result_ = nbarg;
 }
+
+class IsALinearArgTrigVisitor
+    : public BaseVisitor<IsALinearArgTrigVisitor, StopVisitor>
+{
+protected:
+    Ptr<const Symbol> x_;
+    bool is_;
+
+public:
+    IsALinearArgTrigVisitor(Ptr<const Symbol> x) : x_(x)
+    {
+    }
+
+    void bvisit(const Basic &x)
+    {
+    }
+
+    void bvisit(const Symbol &x)
+    {
+        if (x_->__eq__(x)) {
+            is_ = false;
+            stop_ = true;
+        }
+    }
+
+    template <typename T,
+              typename
+              = enable_if_t<std::is_base_of<TrigFunction, T>::value
+                            or std::is_base_of<HyperbolicFunction, T>::value>>
+    void bvisit(const T &x)
+    {
+        is_ = (from_basic<UExprPoly>(x.get_args()[0], (*x_).rcp_from_this())
+                   ->get_degree()
+               <= 1);
+        stop_ = true;
+    }
+
+    bool apply(const Basic &b)
+    {
+        is_ = true;
+        stop_ = false;
+        preorder_traversal_stop(b, *this);
+        return is_;
+    }
+};
+
+bool is_a_LinearArgTrigEquation(const Basic &b, const Symbol &x)
+{
+    IsALinearArgTrigVisitor v(ptrFromRef(x));
+    return v.apply(b);
+}
+
 } // SymEngine

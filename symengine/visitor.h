@@ -185,6 +185,8 @@ RCP<const Basic> coeff(const Basic &b, const Basic &x, const Basic &n);
 
 set_basic free_symbols(const Basic &b);
 
+bool is_a_LinearArgTrigEquation(const Basic &b, const Symbol &x);
+
 class TransformVisitor : public BaseVisitor<TransformVisitor>
 {
 protected:
