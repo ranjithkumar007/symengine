@@ -24,6 +24,10 @@ RCP<const Set> solve_rational(const RCP<const Basic> &f,
                               const RCP<const Symbol> &sym,
                               const RCP<const Set> &domain = universalset());
 
+RCP<const Set> solve_trig(const RCP<const Basic> &f,
+                          const RCP<const Symbol> &sym,
+                          const RCP<const Set> &domain = universalset());
+
 RCP<const Set> solve_poly(const RCP<const Basic> &f,
                           const RCP<const Symbol> &sym,
                           const RCP<const Set> &domain = universalset());
@@ -45,7 +49,6 @@ RCP<const Set> solve_poly_cubic(const vec_basic &coeffs,
 RCP<const Set> solve_poly_quartic(const vec_basic &coeffs,
                                   const RCP<const Set> &domain
                                   = universalset());
-
 } // namespace SymEngine
 
 #endif // SYMENGINE_SOLVE_H
