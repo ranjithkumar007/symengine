@@ -90,7 +90,7 @@ if [[ "${WITH_MPC}" == "yes" ]]; then
 fi
 
 if [[ "${WITH_FLINT}" == "yes" ]] && [[ "${WITH_FLINT_DEV}" != "yes" ]]; then
-    conda_pkgs="$conda_pkgs libflint=2.5.2"
+    conda_pkgs="$conda_pkgs libflint=2.5.2 cmake=3.6.2"
 fi
 
 if [[ "${WITH_ARB}" == "yes" ]]; then
