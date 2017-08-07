@@ -90,7 +90,7 @@ if [[ "${WITH_MPC}" == "yes" ]]; then
 fi
 
 if [[ "${WITH_FLINT}" == "yes" ]] && [[ "${WITH_FLINT_DEV}" != "yes" ]]; then
-    conda_pkgs="$conda_pkgs libflint=2.5.2 cmake=3.6.2"
+    conda_pkgs="$conda_pkgs libflint=2.5.2"
 fi
 
 if [[ "${WITH_ARB}" == "yes" ]]; then
@@ -105,13 +105,15 @@ if [[ "${WITH_ECM}" == "yes" ]]; then
     conda_pkgs="$conda_pkgs ecm=7.0.4"
 fi
 
-conda create -q -p $our_install_dir ${conda_pkgs};
-source activate $our_install_dir;
-
 if [[ "${WITH_FLINT_DEV}" == "yes" ]] && [[ "${WITH_ARB}" != "yes" ]]; then
     git clone https://github.com/wbhart/flint2;
     cd flint2 && git checkout 06defcbc52efe41a8c73496ffde9fc66941e3f0d && ./configure --prefix=$our_install_dir --with-gmp=$our_install_dir --with-mpfr=$our_install_dir && make -j8 install && cd ..;
+    conda_pkgs="$conda_pkgs cmake=3.6.2"
 fi
+
+conda create -q -p $our_install_dir ${conda_pkgs};
+source activate $our_install_dir;
+
 
 export LLVM_DIR=$our_install_dir/share/llvm/
 
