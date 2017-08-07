@@ -112,11 +112,6 @@ fi
 conda create -q -p $our_install_dir ${conda_pkgs};
 source activate $our_install_dir;
 
-if [[ "${WITH_FLINT_DEV}" == "yes" ]] && [[ "${WITH_ARB}" != "yes" ]]; then
-    git clone https://github.com/wbhart/flint2;
-    cd flint2 && git checkout 06defcbc52efe41a8c73496ffde9fc66941e3f0d && ./configure --prefix=$our_install_dir --with-gmp=$our_install_dir --with-mpfr=$our_install_dir && make -j8 install && cd ..;
-fi
-
 export LLVM_DIR=$our_install_dir/share/llvm/
 
 # Use ccache
@@ -124,6 +119,12 @@ export CXX="ccache ${CXX}"
 export CC="ccache ${CC}"
 export CCACHE_DIR=$HOME/.ccache
 ccache -M 400M
+
+if [[ "${WITH_FLINT_DEV}" == "yes" ]] && [[ "${WITH_ARB}" != "yes" ]]; then
+    git clone https://github.com/wbhart/flint2;
+    cd flint2 && git checkout 06defcbc52efe41a8c73496ffde9fc66941e3f0d && ./configure --prefix=$our_install_dir --with-gmp=$our_install_dir --with-mpfr=$our_install_dir && make -j8 install && cd ..;
+fi
+
 
 cd $SOURCE_DIR;
 
