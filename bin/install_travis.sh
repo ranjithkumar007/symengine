@@ -110,7 +110,7 @@ source activate $our_install_dir;
 
 if [[ "${WITH_FLINT_DEV}" == "yes" ]] && [[ "${WITH_ARB}" != "yes" ]]; then
     git clone https://github.com/wbhart/flint2;
-    cd flint2 && git checkout 06defcbc52efe41a8c73496ffde9fc66941e3f0d && ./configure --prefix=$our_install_dir --with-gmp=$our_install_dir --with-mpfr=$our_install_dir && make -j8 install && cd ..;
+    cd flint2 && git checkout 06defcbc52efe41a8c73496ffde9fc66941e3f0d && ./configure --prefix=$our_install_dir --with-gmp=$our_install_dir --with-mpfr=$our_install_dir && make --quiet -j8 install && cd ..;
 fi
 
 export LLVM_DIR=$our_install_dir/share/llvm/
